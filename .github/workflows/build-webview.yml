@@ -28,6 +28,17 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
+      - name: Install CCache
+        run: |
+          sudo apt-get update && sudo apt-get install -y ccache
+
+      - name: Initialize CCache
+        uses: hendrikmuhs/ccache-action
+        with:
+          key: ccache-arm64-${{ github.sha }}
+          restore-keys: ccache-arm64-
+          max-size: 5G
+
       - name: Set up Cromite Tools
         run: |
           chmod -R +x tools/
@@ -76,7 +87,7 @@ jobs:
 
       - name: Apply Patches
         run: |
-          tools/patch.sh
+          tools/apply-all-patch.sh
 
       - name: Configure Arguments
         run: |
@@ -88,6 +99,7 @@ jobs:
           echo 'target_cpu = "arm64"' >> out/Default/args.gn
           echo 'is_debug = false' >> out/Default/args.gn
           echo 'is_official_build = true' >> out/Default/args.gn
+          echo 'cc_wrapper = "ccache"' >> out/Default/args.gn
 
       - name: Build SystemWebView
         run: |
@@ -130,6 +142,17 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
+      - name: Install CCache
+        run: |
+          sudo apt-get update && sudo apt-get install -y ccache
+
+      - name: Initialize CCache
+        uses: hendrikmuhs/ccache-action
+        with:
+          key: ccache-x64-${{ github.sha }}
+          restore-keys: ccache-x64-
+          max-size: 5G
+
       - name: Set up Cromite Tools
         run: |
           chmod -R +x tools/
@@ -178,7 +201,7 @@ jobs:
 
       - name: Apply Patches
         run: |
-          tools/patch.sh
+          tools/apply-all-patch.sh
 
       - name: Configure Arguments
         run: |
@@ -190,6 +213,7 @@ jobs:
           echo 'target_cpu = "x64"' >> out/Default/args.gn
           echo 'is_debug = false' >> out/Default/args.gn
           echo 'is_official_build = true' >> out/Default/args.gn
+          echo 'cc_wrapper = "ccache"' >> out/Default/args.gn
 
       - name: Compile SystemWebView
         run: |
