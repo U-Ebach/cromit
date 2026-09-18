@@ -20,27 +20,9 @@ jobs:
           fetch-depth: 0
       - name: Sync w Upstream
         id: sync-upstream
-        uses: a0a/upstream-sync-action@v2
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.3
         with: 
-          upstream_repository: uazo/cromite
-          upstream_branch: master
-          target_branch: master
-      - name: Fetch n check
-        id: fetch-check
-        run: |
-          git fetch --tags https://github.com/uazo/cromite.git
-          
-          LATEST_TAG=$(git tag -l | sort -V | tail -n 1)
-          echo "Latest tag is $LATEST_TAG"
-          
-          if ! git rev-parse "$LATEST_TAG" >/dev/null 2>&1; then
-            echo "It seems the original repo has updated"
-            
-            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git config --global user.name "github-actions[bot]"
-
-            git tag $LATEST_TAG
-            git push origin $LATEST_TAG
-          else
-            echo "Nothing new. Skipping"
-          fi
+          upstream_sync_repo: 'uazo/cromite'
+          upstream_sync_branch: 'master'
+          target_sync_branch: 'master'
+          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
