@@ -35,8 +35,8 @@ jobs:
       - name: Initialize CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ccache-arm64-${{ github.sha }}
-          restore-keys: ccache-arm64-
+          key: ccache-x64-${{ github.sha }}
+          restore-keys: ccache-x64-
           max-size: 5G
 
       - name: Set up Cromite Tools
@@ -59,19 +59,19 @@ jobs:
         run: |
           mkdir chromium/
           cd chromium/
-          
-          fetch --nohooks android
+        
+          fetch --nohooks --no-history android
 
           cd src/
 
-          git fetch --tags
-          git checkout ${{ github.ref_name }}
+          git fetch origin tag refs/tags/${{ github.ref_name }}:refs/tags/${{ github.ref_name }} --depth 1
+          git checkout tags/${{ github.ref_name }}
 
       - name: Init Environment
         run: |
           cd chromium/src/
 
-          gclient sync --with_branch_heads --with_tags --force --reset --no-history --shallow
+          gclient sync -j$(nproc) --with_branch_heads --with_tags --force --reset --no-history
 
           cd ..
 
@@ -174,18 +174,18 @@ jobs:
           mkdir chromium/
           cd chromium/
           
-          fetch --nohooks android
+          fetch --nohooks --no-history android
 
           cd src/
 
-          git fetch --tags
-          git checkout ${{ github.ref_name }}
+          git fetch origin tag refs/tags/${{ github.ref_name }}:refs/tags/${{ github.ref_name }} --depth 1
+          git checkout tags/${{ github.ref_name }}
 
       - name: Init Environment
         run: |
           cd chromium/src/
 
-          gclient sync --with_branch_heads --with_tags --force --reset --no-history --shallow
+          gclient sync -j$(nproc) --with_branch_heads --with_tags --force --reset --no-history
 
           cd ..
 
