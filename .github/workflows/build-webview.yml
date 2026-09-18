@@ -12,32 +12,90 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04-arm
     steps:
+      - name: Clean space
+        uses: easimon/maximize-build-space@v10
+        with:
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+          root-reserve-mb: 1536
+          swap-size-mb: 2048
+      
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
 
+      - name: Set up Cromite Tools
+        run: |
+          chmod -R +x tools/
+
       - name: Set up Depot Tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$GITHUB_WORKSPACE/depot_tools" >> $GITHUB_PATH
+
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
+      - name: Clone Chromium
+        run: |
+          mkdir chromium/
+          cd chromium/
+          
+          fetch --nohooks android
+
+          cd src/
+
+          git fetch --tags
+          git checkout ${{ github.ref_name }}
+
+      - name: Init Environment
+        run: |
+          cd chromium/src/
+
+          gclient sync --with_branch_heads --with_tags --force --reset --no-history --shallow
+
+          cd ..
+
+          mv src/ ..
+
+          cd ..
+
+          rm -rf chromium/
+
       - name: Install Dependencies
-        run: sudo bash ./build/install-build-deps.sh --android
+        run: |
+          sudo bash src/build/install-build-deps.sh --no-prompt --no-chromeos-fonts --android
+
+      - name: Apply Patches
+        run: |
+          tools/patch.sh
 
       - name: Configure Arguments
         run: |
+          cd src/
+          
           mkdir -p out/Default
+          
           echo 'target_os = "android"' > out/Default/args.gn
           echo 'target_cpu = "arm64"' >> out/Default/args.gn
           echo 'is_debug = false' >> out/Default/args.gn
           echo 'is_official_build = true' >> out/Default/args.gn
 
       - name: Build SystemWebView
-        run: ninja -C out/Default system_webview_apk
+        run: |
+          cd src/
+          
+          ninja -C out/Default system_webview_apk
 
       - name: Rename SystemWebView.apk
-        run: mv out/Default/apks/SystemWebView.apk out/Default/apks/arm64-SystemWebView.apk
+        run: |
+          mv src/out/Default/apks/SystemWebView.apk src/out/Default/apks/arm64-SystemWebView.apk
 
       - name: Upload SystemWebView.apk arm64
         uses: softprops/action-gh-release@v2
@@ -47,39 +105,97 @@ jobs:
           name: ${{ github.ref_name }}
           draft: false
           prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'test') }}
-          files: out/Default/apks/arm64-SystemWebView.apk
+          files: src/out/Default/apks/arm64-SystemWebView.apk
   
   build-x64:
     name: Build x64 WebView
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     steps:
+      - name: Clean space
+        uses: easimon/maximize-build-space@v10
+        with:
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+          root-reserve-mb: 1536
+          swap-size-mb: 2048
+      
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
 
-      - name: Set up Build Tools
+      - name: Set up Cromite Tools
+        run: |
+          chmod -R +x tools/
+
+      - name: Set up Depot Tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo "$GITHUB_WORKSPACE/depot_tools" >> $GITHUB_PATH
+
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
-        run: sudo bash ./build/install-build-deps.sh --android
-
-      - name: Configure GN Args
+      - name: Clone Chromium
         run: |
+          mkdir chromium/
+          cd chromium/
+          
+          fetch --nohooks android
+
+          cd src/
+
+          git fetch --tags
+          git checkout ${{ github.ref_name }}
+
+      - name: Init Environment
+        run: |
+          cd chromium/src/
+
+          gclient sync --with_branch_heads --with_tags --force --reset --no-history --shallow
+
+          cd ..
+
+          mv src/ ..
+
+          cd ..
+
+          rm -rf chromium/
+
+      - name: Install Dependencies
+        run: |
+          sudo bash src/build/install-build-deps.sh --no-prompt --no-chromeos-fonts --android
+
+      - name: Apply Patches
+        run: |
+          tools/patch.sh
+
+      - name: Configure Arguments
+        run: |
+          cd src/
+          
           mkdir -p out/Default
+          
           echo 'target_os = "android"' > out/Default/args.gn
           echo 'target_cpu = "x64"' >> out/Default/args.gn
           echo 'is_debug = false' >> out/Default/args.gn
           echo 'is_official_build = true' >> out/Default/args.gn
 
       - name: Compile SystemWebView
-        run: ninja -C out/Default system_webview_apk
+        run: |
+          cd src/
+          
+          ninja -C out/Default system_webview_apk
 
       - name: Rename SystemWebView.apk
-        run: mv out/Default/apks/SystemWebView.apk out/Default/apks/x64-SystemWebView.apk
+        run: |
+          mv src/out/Default/apks/SystemWebView.apk src/out/Default/apks/x64-SystemWebView.apk
 
       - name: Upload SystemWebView.apk x64
         uses: softprops/action-gh-release@v2
@@ -89,4 +205,4 @@ jobs:
           name: ${{ github.ref_name }}
           draft: false
           prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'test') }}
-          files: out/Default/apks/x64-SystemWebView.apk
+          files: src/out/Default/apks/x64-SystemWebView.apk
