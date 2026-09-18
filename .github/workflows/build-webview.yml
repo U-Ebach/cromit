@@ -9,12 +9,13 @@ on:
 jobs:
   build-arm64:
     name: Build SystemWebView arm64
-    if: |
-      github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: Set up Depot Tools
         uses: actions/setup-python@v5
@@ -50,12 +51,13 @@ jobs:
   
   build-x64:
     name: Build x64 WebView
-    if: |
-      github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: Set up Build Tools
         uses: actions/setup-python@v5
