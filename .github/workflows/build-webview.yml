@@ -33,7 +33,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y ccache
 
       - name: Initialize CCache
-        uses: hendrikmuhs/ccache-action
+        uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ccache-arm64-${{ github.sha }}
           restore-keys: ccache-arm64-
@@ -147,7 +147,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y ccache
 
       - name: Initialize CCache
-        uses: hendrikmuhs/ccache-action
+        uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ccache-x64-${{ github.sha }}
           restore-keys: ccache-x64-
