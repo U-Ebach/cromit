@@ -1,0 +1,90 @@
+name: Build SystemWebView
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-arm64:
+    name: Build SystemWebView arm64
+    if: |
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Depot Tools
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: sudo bash ./build/install-build-deps.sh --android
+
+      - name: Configure Arguments
+        run: |
+          mkdir -p out/Default
+          echo 'target_os = "android"' > out/Default/args.gn
+          echo 'target_cpu = "arm64"' >> out/Default/args.gn
+          echo 'is_debug = false' >> out/Default/args.gn
+          echo 'is_official_build = true' >> out/Default/args.gn
+
+      - name: Build SystemWebView
+        run: ninja -C out/Default system_webview_apk
+
+      - name: Rename SystemWebView.apk
+        run: mv out/Default/apks/SystemWebView.apk out/Default/apks/arm64-SystemWebView.apk
+
+      - name: Upload SystemWebView.apk arm64
+        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'push'
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'test') }}
+          files: out/Default/apks/arm64-SystemWebView.apk
+  
+  build-x64:
+    name: Build x64 WebView
+    if: |
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Build Tools
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: sudo bash ./build/install-build-deps.sh --android
+
+      - name: Configure GN Args
+        run: |
+          mkdir -p out/Default
+          echo 'target_os = "android"' > out/Default/args.gn
+          echo 'target_cpu = "x64"' >> out/Default/args.gn
+          echo 'is_debug = false' >> out/Default/args.gn
+          echo 'is_official_build = true' >> out/Default/args.gn
+
+      - name: Compile SystemWebView
+        run: ninja -C out/Default system_webview_apk
+
+      - name: Rename SystemWebView.apk
+        run: mv out/Default/apks/SystemWebView.apk out/Default/apks/x64-SystemWebView.apk
+
+      - name: Upload SystemWebView.apk x64
+        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'push'
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'test') }}
+          files: out/Default/apks/x64-SystemWebView.apk
