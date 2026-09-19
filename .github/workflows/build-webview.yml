@@ -33,8 +33,8 @@ jobs:
       - name: Initialize CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ccache-x64-${{ github.sha }}
-          restore-keys: ccache-x64-
+          key: ccache-arm64-${{ github.sha }}
+          restore-keys: ccache-arm64-
           max-size: 5G
 
       - name: Set up Cromite Tools
@@ -61,6 +61,10 @@ jobs:
           fetch --nohooks --no-history android
 
           cd src/
+
+          git config --unset-all remote.origin.fetch || true
+          git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+          rm -rf .git/refs/tags/refs || true
 
           git fetch origin tag refs/tags/${{ github.ref_name }}:refs/tags/${{ github.ref_name }} --depth 1
           git checkout tags/${{ github.ref_name }}
@@ -103,7 +107,7 @@ jobs:
         run: |
           cd src/
           
-          ninja -C out/Default system_webview_apk
+          autoninja -C out/Default system_webview_apk
 
       - name: Rename SystemWebView.apk
         run: |
@@ -176,6 +180,10 @@ jobs:
 
           cd src/
 
+          git config --unset-all remote.origin.fetch || true
+          git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+          rm -rf .git/refs/tags/refs || true
+
           git fetch origin tag refs/tags/${{ github.ref_name }}:refs/tags/${{ github.ref_name }} --depth 1
           git checkout tags/${{ github.ref_name }}
 
@@ -217,7 +225,7 @@ jobs:
         run: |
           cd src/
           
-          ninja -C out/Default system_webview_apk
+          autoninja -C out/Default system_webview_apk
 
       - name: Rename SystemWebView.apk
         run: |
