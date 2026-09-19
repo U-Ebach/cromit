@@ -15,6 +15,10 @@ jobs:
     outputs:
       has_changes: ${{ steps.sync-upstream.outputs.has_new_commits }}
     steps:
+      - name: Install Requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get install jq gh
       - name: Checkout Master
         uses: actions/checkout@v4
         with:
