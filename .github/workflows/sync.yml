@@ -25,6 +25,8 @@ jobs:
         run: |
           TAG=$(gh api repos/uazo/cromite/tags | jq -r 'first(.[] | select(.name | test("^v\\\\d+ \\\\. \\\\d+ \\\\. \\\\d+ \\\\. \\\\d+ - \\\\w{40}$"; "ix"))) | .name')
 
+          echo "Last stable tag is $TAG"
+
           echo "tag=$TAG" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
