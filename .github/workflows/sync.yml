@@ -13,19 +13,28 @@ jobs:
   sync:
     runs-on: ubuntu-slim
     outputs:
-      has_changes: ${{ steps.sync-upstream.output.has_new_commits }}
+      has_changes: ${{ steps.sync-upstream.outputs.has_new_commits }}
     steps:
       - name: Checkout Master
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+      - name: Get Last Stable Tag
+        id: last-tag
+        run: |
+          TAG=$(gh api repos/uazo/cromite/tags | jq -r 'first(.[] | select(.name | test("^v\\\\d+ \\\\. \\\\d+ \\\\. \\\\d+ \\\\. \\\\d+ - \\\\w{40}$"; "ix"))) | .name')
+
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
       - name: Sync w Upstream
         id: sync-upstream
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.3
         with: 
           upstream_sync_repo: 'uazo/cromite'
-          upstream_sync_branch: 'master'
+          upstream_sync_branch: ${{ steps.last-tag.outputs.tag }}
           target_sync_branch: 'master'
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
   build:
