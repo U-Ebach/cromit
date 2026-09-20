@@ -1,2 +1,9 @@
 *.zip binary
 *.pdf binary
+
+
+# Prefer ours
+
+.github/** merge=ours
+README.md merge=ours
+LICENSE merge=ours
