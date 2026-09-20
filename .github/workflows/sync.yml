@@ -27,7 +27,7 @@ jobs:
       - name: Get Last Stable Tag
         id: last-tag
         run: |
-          TAG=$(gh api repos/uazo/cromite/tags | jq -r 'first(.[] | select(.name | test("^v\\\\d+ \\\\. \\\\d+ \\\\. \\\\d+ \\\\. \\\\d+ - \\\\w{40}$"; "ix"))) | .name')
+          TAG=$(gh api repos/uazo/cromite/tags | jq -r 'first(.[] | select(.name | test("^v\\d+ \\. \\d+ \\. \\d+ \\. \\d+ - \\w{40}$"; "ix"))) | .name')
 
           echo "Last stable tag is $TAG"
 
